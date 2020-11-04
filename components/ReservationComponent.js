@@ -10,6 +10,7 @@ import {
   Modal,
   Alert,
 } from "react-native";
+import * as Notifications from "expo-notifications";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Animatable from "react-native-animatable";
 
@@ -54,7 +55,9 @@ class Reservation extends Component {
         {
           text: "OK",
           onPress: () => {
-            console.log("Submitted");
+            this.presentLocalNotification(
+              this.state.date.toLocaleDateString("en-US")
+            );
             this.resetForm();
           },
         },
@@ -72,6 +75,35 @@ class Reservation extends Component {
       showCalendar: false,
       // showModal: false,
     });
+  }
+
+  async presentLocalNotification(date) {
+    function sendNotification() {
+      // what to do if notification is initiated but the foreground is the app
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+        }),
+      });
+      // when to schedule your notification, and what it should contain
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Your Campsite Reservation Search",
+          body: `Search for ${date} requested`,
+        },
+        // when to fire notification in future. ex: 30 seconds, or repeating, etc
+        trigger: null,
+      });
+    }
+    // 'await' is similar to the .next method
+    // here we are asking device for permission to send notifications
+    let permissions = await Notifications.getPermissionsAsync();
+    if (!permissions.granted) {
+      permissions = await Notifications.requestPermissionsAsync();
+    }
+    if (permissions.granted) {
+      sendNotification();
+    }
   }
 
   render() {

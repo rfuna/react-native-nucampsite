@@ -6,6 +6,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import { createBottomTabNavigator } from "react-navigation-tabs";
 import { baseUrl } from "../shared/baseUrl";
+import * as ImageManipulator from "expo-image-manipulator";
 
 class LoginTab extends Component {
   constructor(props) {
@@ -103,7 +104,7 @@ class LoginTab extends Component {
             onPress={() => this.props.navigation.navigate("Register")}
             title="Register"
             type="clear"
-            titleStyle={{ color: " blue" }}
+            titleStyle={{ color: "blue" }}
             icon={
               <Icon
                 name="user-plus"
@@ -158,9 +159,42 @@ class RegisterTab extends Component {
       });
       if (!capturedImage.cancelled) {
         console.log(capturedImage);
-        this.setState({ imageUrl: capturedImage.uri });
+        this.processImage(capturedImage.uri);
       }
     }
+  };
+
+  getImageFromGallery = async () => {
+    const cameraPermission = await Permissions.askAsync(Permissions.CAMERA);
+    const cameraRollPermission = await Permissions.askAsync(
+      Permissions.CAMERA_ROLL
+    );
+    if (
+      cameraPermission.status === "granted" &&
+      cameraRollPermission.status === "granted"
+    ) {
+      const capturedImage = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+
+      if (!capturedImage.cancelled) {
+        console.log(capturedImage);
+        this.processImage(capturedImage.uri);
+      }
+    }
+  };
+
+  processImage = async (imgUri) => {
+    const processedImage = await ImageManipulator.manipulateAsync(
+      imgUri,
+      [{ resize: { width: 400 } }],
+      { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+    );
+    console.log("processedImage-->");
+    console.log(processedImage);
+    this.setState({ imageUrl: processedImage.uri });
   };
 
   handleRegister() {
@@ -191,6 +225,11 @@ class RegisterTab extends Component {
               style={styles.image}
             />
             <Button title="Camera" onPress={this.getImageFromCamera} />
+
+            {/* Gallery button */}
+            <View style={styles.formButton}>
+              <Button onPress={this.getImageFromGallery} title="Gallery" />
+            </View>
           </View>
           <Input
             placeholder="Username"

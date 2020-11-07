@@ -74,7 +74,7 @@ function RenderCampsite(props) {
           { cancelable: false }
         );
       } else if (recognizeComment(gestureState)) {
-        props.handleComment();
+        props.onShowModal();
       }
       return true;
     },
@@ -236,7 +236,6 @@ class CampsiteInfo extends Component {
           favorite={this.props.favorites.includes(campsiteId)}
           markFavorite={() => this.markFavorite(campsiteId)}
           onShowModal={() => this.toggleModal()}
-          handleComment={() => this.handleComment(campsiteId)}
         />
         <RenderComments comments={comments} />
 
